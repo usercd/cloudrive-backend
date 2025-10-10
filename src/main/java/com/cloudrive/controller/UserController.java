@@ -6,15 +6,13 @@ import com.cloudrive.model.dto.LoginDTO;
 import com.cloudrive.model.dto.RegisterDTO;
 import com.cloudrive.model.entity.User;
 import com.cloudrive.model.vo.UserLoginVO;
+import com.cloudrive.model.vo.UserVO;
 import com.cloudrive.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author cd
@@ -60,5 +58,42 @@ public class UserController {
         userLoginVO.setUserId(user.getUserId());
         userLoginVO.setToken(token);
         return Result.success(userLoginVO);
+    }
+
+    /**
+     * 通过用户ID查询用户信息
+     */
+    @GetMapping("{userId}")
+    public Result<UserVO> getUserInfo(@PathVariable("userId") String userId) {
+        User user = userService.findUserById(userId);
+        if (user == null) {
+            return Result.error("用户不存在！");
+        }
+
+        UserVO userVO = new UserVO();
+        userVO.setUserId(user.getUserId());
+        userVO.setUsername(user.getUsername());
+        userVO.setEmail(user.getEmail());
+        userVO.setAvatarUrl(user.getAvatarUrl());
+        return Result.success(userVO);
+    }
+
+
+    /**
+     * 登出
+     */
+    @PostMapping("/logout")
+    public Result<Void> logout() {
+        userService.logout();
+        return Result.success();
+    }
+
+    /**
+     * 强制登出
+     */
+    @PostMapping("/forceLogout/{userId}")
+    public Result<Void> forceLogout(@PathVariable Long userId) {
+        userService.forceLogout(userId);
+        return Result.success();
     }
 }

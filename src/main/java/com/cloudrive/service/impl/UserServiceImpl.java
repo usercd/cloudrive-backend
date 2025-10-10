@@ -131,4 +131,17 @@ public class UserServiceImpl implements UserService {
     public User findUserById(String userId) {
         return userMapper.findUserById(userId);
     }
+
+    @Override
+    public void logout() {
+        ExceptionUtil.throwIf(!StpUtil.isLogin(), ErrorCode.USER_NOT_LOGGED_IN);
+        StpUtil.logout();
+    }
+
+    @Override
+    public void forceLogout(Long userId) {
+        ExceptionUtil.throwIf(!StpUtil.isLogin(), ErrorCode.USER_NOT_LOGGED_IN, "操作者未登录");
+        // 强制指定用户下线
+        StpUtil.logout(userId);
+    }
 }

@@ -1,10 +1,8 @@
 package com.cloudrive.service;
 
-
 import com.cloudrive.model.dto.LoginDTO;
 import com.cloudrive.model.dto.RegisterDTO;
 import com.cloudrive.model.entity.User;
-import jakarta.validation.Valid;
 
 /**
  * @author cd
@@ -29,4 +27,14 @@ public interface UserService {
 
     User findUserByEmail(String email);
     User findUserById(String userId);
+
+    /**
+     * 用户登出
+     */
+    void logout();
+
+    /**
+     * 强制下线指定用户
+     */
+    void forceLogout(Long userId);
 }
