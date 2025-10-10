@@ -8,6 +8,7 @@ import com.cloudrive.mapper.FileInfoMapper;
 import com.cloudrive.mapper.UserMapper;
 import com.cloudrive.model.entity.FileInfo;
 import com.cloudrive.model.entity.User;
+import com.cloudrive.model.vo.FileListVO;
 import com.cloudrive.service.FileService;
 import com.cloudrive.service.StorageService;
 import com.cloudrive.service.StorageServiceFactory;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author cd
@@ -134,5 +136,29 @@ public class FileServiceImpl implements FileService {
         // 保存新的文件记录
         fileInfoMapper.insertFileInfo(fileInfo);
         return fileInfo;
+    }
+
+    @Override
+    public List<FileListVO> listFiles(String parentId) {
+        String userId = UserContext.getCurrentUserId();
+        //List<FileInfo> fileInfos = fileInfoRepository.findByUser_UserIdAndParentIdAndIsDeletedFalse(userId, parentId);
+        List<FileInfo> fileInfos = fileInfoMapper.findFileInfoByUserIdAndParentId(userId, parentId);
+
+        return fileInfos.stream().map(this::convertToFileListVO).collect(Collectors.toList());
+    }
+
+    private FileListVO convertToFileListVO(FileInfo fileInfo) {
+        FileListVO vo = new FileListVO();
+        vo.setFileInfoId(fileInfo.getFileInfoId());
+        vo.setFilename(fileInfo.getFilename());
+        vo.setOriginalFilename(fileInfo.getOriginalFilename());
+        vo.setPath(fileInfo.getPath());
+        vo.setParentId(fileInfo.getParentId());
+        vo.setFileSize(fileInfo.getFileSize());
+        vo.setFileType(fileInfo.getFileType());
+        vo.setCreatedAt(fileInfo.getCreatedAt());
+        vo.setUpdatedAt(fileInfo.getUpdatedAt());
+        vo.setIsFolder(fileInfo.getIsFolder());
+        return vo;
     }
 }

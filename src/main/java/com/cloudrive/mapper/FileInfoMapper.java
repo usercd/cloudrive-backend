@@ -42,6 +42,8 @@ public interface FileInfoMapper {
      */
     FileInfo findFileInfoByParentId(@Param("parentId") String parentId);
 
+    List<FileInfo> findFileInfoByUserIdAndParentId(@Param("userId") String userId, @Param("parentId") String parentId);
+
 
     /**
      * 统计引用同一文件路径的文件数量

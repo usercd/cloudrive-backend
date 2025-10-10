@@ -90,4 +90,24 @@
         from t_file_info
         where file_info_id = #{parentId} and isDeleted = 0
     </select>
+
+    <select id="findFileInfoByUserIdAndParentId" resultType="com.cloudrive.model.entity.FileInfo">
+        select file_info_id,
+               user_id,
+               parent_id,
+               original_filename,
+               sha256_hash,
+               path,
+               file_size,
+               file_type,
+               filename,
+               isDeleted,
+               isFolder,
+               created_at,
+               updated_at
+        from t_file_info
+        where user_id = #{userId}
+          and (#{parentId} is null and parent_id is null or parent_id = #{parentId})
+          and isDeleted = 0
+    </select>
 </mapper>
