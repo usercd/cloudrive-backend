@@ -106,7 +106,7 @@ public class GlobalExceptionHandler {
         logger.error("Unexpected error: ", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Result.error(500, e.getMessage()));
+                .body(Result.error(500, "服务器内部错误"));
     }
 
     /**
