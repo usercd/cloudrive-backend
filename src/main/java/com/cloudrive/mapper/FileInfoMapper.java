@@ -24,6 +24,9 @@ public interface FileInfoMapper {
     // 根据ID查找文件信息（用于判断是插入还是更新）
     FileInfo selectFileInfoByFileId(@Param("fileInfoId") String fileInfoId);
 
+    // 根据ID查找文件信息
+    FileInfo findById(@Param("fileId") String fileId);
+
     //List<FileInfo> findByUser_UserIdAndParentIdIsNullAndIsDeletedFalse(String userId);
     //List<FileInfo> findByUser_UserIdAndParentIdAndIsDeletedFalse(String userId, Long parentId);
     //Optional<FileInfo> findByPathAndUser_UserId(String path, String userId);

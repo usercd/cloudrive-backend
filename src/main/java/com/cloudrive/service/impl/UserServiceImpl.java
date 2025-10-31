@@ -96,25 +96,23 @@ public class UserServiceImpl implements UserService {
     public String login(LoginDTO loginDTO) {
         logger.info("开始处理登录请求，用户名：{}", loginDTO.getEmail());
         User userByEmail = userMapper.findUserByEmail(loginDTO.getEmail());
-        Optional<User> userOpt = Optional.ofNullable(userByEmail);
-        if (userOpt.isEmpty()) {
+        if (userByEmail == null) {
             logger.warn("登录失败：邮箱：{} 不存在", loginDTO.getEmail());
             ExceptionUtil.throwBizException(ErrorCode.USER_NOT_FOUND);
         }
 
-        User user = userOpt.get();
-        if (!PasswordUtil.matches(loginDTO.getPassword(), user.getPassword())) {
+        if (!PasswordUtil.matches(loginDTO.getPassword(), userByEmail.getPassword())) {
             logger.warn("登录失败：密码错误，邮箱：{}", loginDTO.getEmail());
             ExceptionUtil.throwBizException(ErrorCode.INVALID_PASSWORD);
         }
 
-        if (user.getStatus() != 1) {
+        if (userByEmail.getStatus() != 1) {
             logger.warn("登录失败：账号已被禁用，邮箱：{}", loginDTO.getEmail());
             ExceptionUtil.throwBizException(ErrorCode.ACCOUNT_DISABLED);
         }
 
         // 登录
-        StpUtil.login(user.getUserId());
+        StpUtil.login(userByEmail.getUserId());
 
         // 返回token
         String token = StpUtil.getTokenValue();

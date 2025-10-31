@@ -26,7 +26,7 @@ public class FileInfo {
 
     private String sha256Hash;
 
-    private User user;
+    private String userId;
 
     private String parentId;
 

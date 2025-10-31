@@ -177,7 +177,7 @@ public class MinioStorageServiceImpl implements StorageService {
             ExceptionUtil.throwBizException(ErrorCode.FILE_DOWNLOAD_FAILED, e.getMessage());
             return null;
         } catch (Exception e) {
-            logger.error("Failed to download file from MinIO: path={}, error={}", path, e.getMessage());
+            logger.error("Failed to download file, error: {}", e.getMessage());
             ExceptionUtil.throwBizException(ErrorCode.FILE_DOWNLOAD_FAILED, e.getMessage());
             return null;
         }

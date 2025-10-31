@@ -2,6 +2,7 @@ package com.cloudrive.mapper;
 
 import com.cloudrive.model.entity.User;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * @author cd
@@ -11,8 +12,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserMapper {
-    User findUserByEmail(String email);
-    User findUserById(String userId);
+    User findUserByEmail(@Param("email") String email);
+    User findUserById(@Param("userId") String userId);
 
     void save(User user);
 }

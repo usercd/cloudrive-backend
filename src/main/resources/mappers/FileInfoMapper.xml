@@ -16,61 +16,60 @@
                updated_at,
                user_id
         from t_file_info
-        where sha256_hash = #{sha256Hash} and user_id = #{userId} and isDeleted = 0
-
+        where sha256_hash = #{sha256Hash}
+          and user_id = #{userId}
+          and isDeleted = 0
     </select>
 
     <!-- 插入语句 -->
     <insert id="insertFileInfo" parameterType="com.cloudrive.model.entity.FileInfo" keyProperty="fileInfo.fileInfoId">
-        INSERT INTO t_file_info (
-            file_info_id,
-            user_id,
-            parent_id,
-            original_filename,
-            sha256_hash,
-            path,
-            file_size,
-            file_type,
-            filename,
-            isDeleted,
-            isFolder,
-            created_at,
-            updated_at
-        ) VALUES (
-            #{fileInfo.fileInfoId},
-            #{fileInfo.user.userId},
-            #{fileInfo.parentId},
-            #{fileInfo.originalFilename},
-            #{fileInfo.sha256Hash},
-            #{fileInfo.path},
-            #{fileInfo.fileSize},
-            #{fileInfo.fileType},
-            #{fileInfo.filename},
-            #{fileInfo.isDeleted},
-            #{fileInfo.isFolder},
-            #{fileInfo.createdAt},
-            #{fileInfo.updatedAt}
-        )
-
+        INSERT INTO t_file_info (file_info_id,
+                                 user_id,
+                                 parent_id,
+                                 original_filename,
+                                 sha256_hash,
+                                 path,
+                                 file_size,
+                                 file_type,
+                                 filename,
+                                 isDeleted,
+                                 isFolder,
+                                 created_at,
+                                 updated_at)
+        VALUES (#{fileInfo.fileInfoId},
+                #{fileInfo.userId},
+                #{fileInfo.parentId},
+                #{fileInfo.originalFilename},
+                #{fileInfo.sha256Hash},
+                #{fileInfo.path},
+                #{fileInfo.fileSize},
+                #{fileInfo.fileType},
+                #{fileInfo.filename},
+                #{fileInfo.isDeleted},
+                #{fileInfo.isFolder},
+                #{fileInfo.createdAt},
+                #{fileInfo.updatedAt})
     </insert>
 
     <!-- 更新语句 -->
     <update id="updateFileInfo" parameterType="com.cloudrive.model.entity.FileInfo">
-        UPDATE t_file_info SET
-                               filename = #{filename},
-                               path = #{path},
-                               size = #{size},
-                               parent_id = #{parentId},
-                               is_folder = #{isFolder},
-                               sha256_hash = #{sha256Hash},
-                               updated_at = #{updatedAt},
-                               is_deleted = #{isDeleted}
-        WHERE file_info_id = #{param1.fileInfoId}
+        UPDATE t_file_info
+        SET filename    = #{fileInfo.filename},
+            path        = #{fileInfo.path},
+            file_size   = #{fileInfo.fileSize},
+            parent_id   = #{fileInfo.parentId},
+            isFolder    = #{fileInfo.isFolder},
+            sha256_hash = #{fileInfo.sha256Hash},
+            updated_at  = #{fileInfo.updatedAt},
+            isDeleted   = #{fileInfo.isDeleted}
+        WHERE file_info_id = #{fileInfo.fileInfoId}
     </update>
 
     <!-- 查询语句 -->
     <select id="selectFileInfoByFileId" parameterType="long" resultType="com.cloudrive.model.entity.FileInfo">
-        SELECT * FROM t_file_info WHERE file_info_id = #{fileInfoId}
+        SELECT *
+        FROM t_file_info
+        WHERE file_info_id = #{fileInfoId}
     </select>
 
     <select id="findFileInfoByParentId" resultType="com.cloudrive.model.entity.FileInfo">
@@ -88,7 +87,8 @@
                created_at,
                updated_at
         from t_file_info
-        where file_info_id = #{parentId} and isDeleted = 0
+        where file_info_id = #{parentId}
+          and isDeleted = 0
     </select>
 
     <select id="findFileInfoByUserIdAndParentId" resultType="com.cloudrive.model.entity.FileInfo">
@@ -109,5 +109,23 @@
         where user_id = #{userId}
           and (#{parentId} is null and parent_id is null or parent_id = #{parentId})
           and isDeleted = 0
+    </select>
+
+    <select id="findById" resultType="com.cloudrive.model.entity.FileInfo">
+        select file_info_id,
+               user_id,
+               parent_id,
+               original_filename,
+               sha256_hash,
+               path,
+               file_size,
+               file_type,
+               filename,
+               isDeleted,
+               isFolder,
+               created_at,
+               updated_at
+        from t_file_info
+        where file_info_id = #{fileId}
     </select>
 </mapper>

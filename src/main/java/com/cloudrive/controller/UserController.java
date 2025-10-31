@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @RestController
-@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
 @Slf4j
@@ -33,7 +32,7 @@ public class UserController {
      * 发送验证码
      */
     @PostMapping("/verification-code")
-    public Result<Void> sendVerificationCode(@RequestBody EmailSendDTO emailSendDTO) {
+    public Result<Void> sendVerificationCode(@Valid @RequestBody EmailSendDTO emailSendDTO) {
         userService.sendVerificationCode(emailSendDTO.getEmail());
         return Result.success();
     }

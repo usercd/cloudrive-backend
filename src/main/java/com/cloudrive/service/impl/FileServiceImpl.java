@@ -1,6 +1,9 @@
 package com.cloudrive.service.impl;
 
 import com.cloudrive.common.constant.CommonConstants;
+import com.cloudrive.common.enums.ErrorCode;
+import com.cloudrive.common.exception.BusinessException;
+import com.cloudrive.common.util.ExceptionUtil;
 import com.cloudrive.common.util.FileHashUtil;
 import com.cloudrive.common.util.GenerateID;
 import com.cloudrive.common.util.UserContext;
@@ -76,7 +79,7 @@ public class FileServiceImpl implements FileService {
         fileInfo.setPath(filePath);
         fileInfo.setFileSize(file.getSize());
         fileInfo.setFileType(file.getContentType());
-        fileInfo.setUser(currentUser);
+        fileInfo.setUserId(currentUser.getUserId());
         fileInfo.setParentId(parentId);
         fileInfo.setIsFolder(false);
         fileInfo.setIsDeleted(false);
@@ -119,7 +122,7 @@ public class FileServiceImpl implements FileService {
         fileInfo.setPath(existingFile.getPath());
         fileInfo.setFileSize(fileSize);
         fileInfo.setFileType(existingFile.getFileType());
-        fileInfo.setUser(currentUser);
+        fileInfo.setUserId(currentUser.getUserId());
         fileInfo.setParentId(parentId);
         fileInfo.setIsFolder(false);
         fileInfo.setIsDeleted(false);
@@ -160,5 +163,54 @@ public class FileServiceImpl implements FileService {
         vo.setUpdatedAt(fileInfo.getUpdatedAt());
         vo.setIsFolder(fileInfo.getIsFolder());
         return vo;
+    }
+
+    @Override
+    public byte[] downloadFile(String fileId) {
+        User currentUser = UserContext.getCurrentUser();
+        FileInfo fileInfo = getAndValidateFile(fileId, currentUser);
+        return retrieveFileContent(fileInfo);
+    }
+
+    private FileInfo getAndValidateFile(String fileId, User currentUser) {
+        logger.info("开始处理下载请求，文件ID：{}", fileId);
+        FileInfo fileInfo = fileInfoMapper.findById(fileId);
+        logger.info("文件信息：{}", fileInfo);
+        if (fileInfo == null) {
+            throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
+        }
+        ExceptionUtil.throwIf(!fileInfo.getUserId().equals(currentUser.getUserId()), ErrorCode.NO_PERMISSION);
+        ExceptionUtil.throwIf(fileInfo.getIsDeleted(), ErrorCode.FILE_NOT_FOUND);
+
+        return fileInfo;
+    }
+
+    private byte[] retrieveFileContent(FileInfo fileInfo) {
+        ExceptionUtil.throwIf(fileInfo.getIsFolder(), ErrorCode.CANNOT_DOWNLOAD_FOLDER);
+
+        String filePath = fileInfo.getPath();
+        StorageService storageService = storageServiceFactory.getStorageService();
+
+        return storageService.downloadFile(filePath);
+    }
+
+    @Override
+    public String getFilename(String fileId) {
+        FileInfo fileInfo = fileInfoMapper.findById(fileId);
+        if (fileInfo == null) {
+            throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
+        }
+        return fileInfo.getFilename();
+    }
+
+    @Override
+    @Transactional
+    public void renameFile(String fileId, String newFilename) {
+        User currentUser = UserContext.getCurrentUser();
+        FileInfo fileInfo = getAndValidateFile(fileId, currentUser);
+
+        fileInfo.setFilename(newFilename);
+        fileInfo.setUpdatedAt(LocalDateTime.now());
+        fileInfoMapper.updateFileInfo(fileInfo);
     }
 }

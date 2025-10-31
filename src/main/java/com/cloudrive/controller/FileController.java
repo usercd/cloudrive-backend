@@ -1,14 +1,21 @@
 package com.cloudrive.controller;
 
 import com.cloudrive.common.Result;
+import com.cloudrive.model.dto.FileRenameDTO;
 import com.cloudrive.model.vo.FileListVO;
 import com.cloudrive.service.FileService;
 import com.cloudrive.service.UploadProgressService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -18,7 +25,6 @@ import java.util.List;
  */
 
 @RestController
-@Validated
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 public class FileController {
@@ -43,6 +49,34 @@ public class FileController {
     public Result<List<FileListVO>> listFiles(@RequestParam(value = "parentId", required = false) String parentId) {
         List<FileListVO> fileListVOs = fileService.listFiles(parentId);
         return Result.success(fileListVOs);
+    }
+
+    /**
+     * 下载文件
+     */
+    @GetMapping("/{fileId}/content")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable String fileId) {
+        byte[] content = fileService.downloadFile(fileId);
+        // 设置响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(ContentDisposition.builder("attachment")
+                .filename(fileService.getFilename(fileId), StandardCharsets.UTF_8)
+                .build());
+        headers.setContentLength(content.length);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(content);
+    }
+
+    /**
+     * 重命名文件
+     */
+    @PatchMapping("/{fileId}/name")
+    public Result<Void> renameFile(@PathVariable String fileId, @Valid @RequestBody FileRenameDTO dto) {
+        fileService.renameFile(fileId, dto.getNewFilename());
+        return Result.success();
     }
 
 }
