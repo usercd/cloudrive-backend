@@ -5,10 +5,13 @@ import com.cloudrive.common.enums.ErrorCode;
 import com.cloudrive.common.util.EmailUtil;
 import com.cloudrive.common.util.ExceptionUtil;
 import com.cloudrive.common.util.PasswordUtil;
+import com.cloudrive.dao.UserDao;
 import com.cloudrive.mapper.UserMapper;
 import com.cloudrive.model.dto.LoginDTO;
 import com.cloudrive.model.dto.RegisterDTO;
 import com.cloudrive.model.entity.User;
+import com.cloudrive.model.vo.UserLoginVO;
+import com.cloudrive.model.vo.UserVO;
 import com.cloudrive.redis.VerificationCodeRedis;
 import com.cloudrive.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +37,12 @@ public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final VerificationCodeRedis verificationCodeRedis;
+    private final UserDao userDao;
     private final UserMapper userMapper;
+
     @Override
     public void sendVerificationCode(String email) {
-        User user = userMapper.findUserByEmail(email);
+        User user = userDao.findUserByEmail(email);
         // 检查邮箱是否已被注册
         ExceptionUtil.throwIf(
                 Optional.ofNullable(user).isPresent(),
@@ -65,12 +70,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void register(RegisterDTO registerDTO) {
-        User user = userMapper.findUserByEmail(registerDTO.getEmail());
+        User user = userDao.findUserByEmail(registerDTO.getEmail());
         // 检查邮箱是否已被注册
-        ExceptionUtil.throwIf(
-                Optional.ofNullable(user).isPresent(),
-                ErrorCode.EMAIL_ALREADY_EXIST
-        );
+        ExceptionUtil.throwIf(user != null, ErrorCode.EMAIL_ALREADY_EXIST);
         // 验证验证码
         String savedCode = verificationCodeRedis.getVerificationCode(registerDTO.getEmail());
         ExceptionUtil.throwIf(
@@ -85,17 +87,15 @@ public class UserServiceImpl implements UserService {
         user.setPassword(PasswordUtil.encode(registerDTO.getPassword()));
         user.setEmail(registerDTO.getEmail());
         user.setStatus(1); // 1表示正常状态
-
-        userMapper.save(user);
-
+        userDao.save(user);
         // 删除验证码
         verificationCodeRedis.deleteVerificationCode(registerDTO.getEmail());
     }
 
     @Override
-    public String login(LoginDTO loginDTO) {
+    public UserLoginVO loginWithPassword(LoginDTO loginDTO) {
         logger.info("开始处理登录请求，用户名：{}", loginDTO.getEmail());
-        User userByEmail = userMapper.findUserByEmail(loginDTO.getEmail());
+        User userByEmail = userDao.findUserByEmail(loginDTO.getEmail());
         if (userByEmail == null) {
             logger.warn("登录失败：邮箱：{} 不存在", loginDTO.getEmail());
             ExceptionUtil.throwBizException(ErrorCode.USER_NOT_FOUND);
@@ -116,18 +116,22 @@ public class UserServiceImpl implements UserService {
 
         // 返回token
         String token = StpUtil.getTokenValue();
+        UserLoginVO userLoginVO = new UserLoginVO();
+        userLoginVO.setUserId(userByEmail.getUserId());
+        userLoginVO.setToken(token);
         logger.info("登录成功，邮箱：{}，token：{}", loginDTO.getEmail(), token);
-        return token;
+        return userLoginVO;
     }
 
     @Override
     public User findUserByEmail(String email) {
-        return userMapper.findUserByEmail(email);
+        return userDao.findUserByEmail(email);
     }
 
     @Override
-    public User findUserById(String userId) {
-        return userMapper.findUserById(userId);
+    public UserVO findUserById(String userId) {
+        User userById = userDao.findUserById(userId);
+        return userMapper.userToUserVO(userById);
     }
 
     @Override

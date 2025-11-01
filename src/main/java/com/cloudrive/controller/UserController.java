@@ -51,11 +51,7 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result<UserLoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
-        String token = userService.login(loginDTO);
-        User user = userService.findUserByEmail(loginDTO.getEmail());
-        UserLoginVO userLoginVO = new UserLoginVO();
-        userLoginVO.setUserId(user.getUserId());
-        userLoginVO.setToken(token);
+        UserLoginVO userLoginVO = userService.loginWithPassword(loginDTO);
         return Result.success(userLoginVO);
     }
 
@@ -64,16 +60,10 @@ public class UserController {
      */
     @GetMapping("{userId}")
     public Result<UserVO> getUserInfo(@PathVariable("userId") String userId) {
-        User user = userService.findUserById(userId);
-        if (user == null) {
+        UserVO userVO = userService.findUserById(userId);
+        if (userVO == null) {
             return Result.error("用户不存在！");
         }
-
-        UserVO userVO = new UserVO();
-        userVO.setUserId(user.getUserId());
-        userVO.setUsername(user.getUsername());
-        userVO.setEmail(user.getEmail());
-        userVO.setAvatarUrl(user.getAvatarUrl());
         return Result.success(userVO);
     }
 

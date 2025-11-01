@@ -1,19 +1,21 @@
 package com.cloudrive.mapper;
 
 import com.cloudrive.model.entity.User;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import com.cloudrive.model.vo.UserVO;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
- * @author cd
- * @date 2025/10/10
+ * @author CD
+ * @date 11/1/2025
  * @description
  */
-
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
-    User findUserByEmail(@Param("email") String email);
-    User findUserById(@Param("userId") String userId);
 
-    void save(User user);
+    @Mapping(source = "userId", target = "userId")
+    @Mapping(source = "username", target = "username")
+    @Mapping(source = "email", target = "email")
+    @Mapping(source = "avatarUrl", target = "avatarUrl")
+    UserVO userToUserVO(User user);
 }

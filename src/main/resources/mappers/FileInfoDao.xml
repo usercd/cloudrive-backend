@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.cloudrive.mapper.FileInfoMapper">
+<mapper namespace="com.cloudrive.dao.FileInfoDao">
     <select id="findBySha256HashAndUserId" resultType="com.cloudrive.model.entity.FileInfo">
         select file_info_id,
                created_at,

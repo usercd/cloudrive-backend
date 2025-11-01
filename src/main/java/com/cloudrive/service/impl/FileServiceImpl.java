@@ -7,8 +7,9 @@ import com.cloudrive.common.util.ExceptionUtil;
 import com.cloudrive.common.util.FileHashUtil;
 import com.cloudrive.common.util.GenerateID;
 import com.cloudrive.common.util.UserContext;
+import com.cloudrive.dao.FileInfoDao;
+import com.cloudrive.dao.UserDao;
 import com.cloudrive.mapper.FileInfoMapper;
-import com.cloudrive.mapper.UserMapper;
 import com.cloudrive.model.entity.FileInfo;
 import com.cloudrive.model.entity.User;
 import com.cloudrive.model.vo.FileListVO;
@@ -25,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -40,9 +40,10 @@ public class FileServiceImpl implements FileService {
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
     private final StorageServiceFactory storageServiceFactory;
+    private final FileInfoDao fileInfoDao;
     private final FileInfoMapper fileInfoMapper;
     private final UploadProgressService uploadProgressService;
-    private final UserMapper userMapper;
+    private final UserDao userDao;
 
     @Override
     @Transactional
@@ -55,7 +56,7 @@ public class FileServiceImpl implements FileService {
         // 2. 检查是否存在相同哈希值的文件（秒传逻辑）
         if (sha256Hash != null && !sha256Hash.isEmpty()) {
             // 查找当前用户是否已经上传过相同哈希值的文件
-            List<FileInfo> existingFiles = fileInfoMapper.findBySha256HashAndUserId(sha256Hash, currentUser.getUserId());
+            List<FileInfo> existingFiles = fileInfoDao.findBySha256HashAndUserId(sha256Hash, currentUser.getUserId());
 
             if (!existingFiles.isEmpty()) {
                 // 找到了相同哈希值的文件，实现秒传
@@ -86,7 +87,7 @@ public class FileServiceImpl implements FileService {
         fileInfo.setCreatedAt(LocalDateTime.now());
         fileInfo.setUpdatedAt(LocalDateTime.now());
         fileInfo.setSha256Hash(sha256Hash);
-        fileInfoMapper.insertFileInfo(fileInfo);
+        fileInfoDao.insertFileInfo(fileInfo);
         return filePath;
     }
 
@@ -96,7 +97,7 @@ public class FileServiceImpl implements FileService {
     private String getUploadPath(String parentId, User currentUser) {
         String path = CommonConstants.File.FILE_PATH_PREFIX + currentUser.getUserId();
         if (parentId != null) {
-            FileInfo parent = fileInfoMapper.findFileInfoByParentId(parentId);
+            FileInfo parent = fileInfoDao.findFileInfoByParentId(parentId);
             path = parent.getPath();
         }
         return path;
@@ -137,7 +138,7 @@ public class FileServiceImpl implements FileService {
         }
 
         // 保存新的文件记录
-        fileInfoMapper.insertFileInfo(fileInfo);
+        fileInfoDao.insertFileInfo(fileInfo);
         return fileInfo;
     }
 
@@ -145,25 +146,11 @@ public class FileServiceImpl implements FileService {
     public List<FileListVO> listFiles(String parentId) {
         String userId = UserContext.getCurrentUserId();
         //List<FileInfo> fileInfos = fileInfoRepository.findByUser_UserIdAndParentIdAndIsDeletedFalse(userId, parentId);
-        List<FileInfo> fileInfos = fileInfoMapper.findFileInfoByUserIdAndParentId(userId, parentId);
+        List<FileInfo> fileInfos = fileInfoDao.findFileInfoByUserIdAndParentId(userId, parentId);
 
-        return fileInfos.stream().map(this::convertToFileListVO).collect(Collectors.toList());
+        return fileInfos.stream().map(fileInfoMapper::fileInfoToFileListVO).collect(Collectors.toList());
     }
 
-    private FileListVO convertToFileListVO(FileInfo fileInfo) {
-        FileListVO vo = new FileListVO();
-        vo.setFileInfoId(fileInfo.getFileInfoId());
-        vo.setFilename(fileInfo.getFilename());
-        vo.setOriginalFilename(fileInfo.getOriginalFilename());
-        vo.setPath(fileInfo.getPath());
-        vo.setParentId(fileInfo.getParentId());
-        vo.setFileSize(fileInfo.getFileSize());
-        vo.setFileType(fileInfo.getFileType());
-        vo.setCreatedAt(fileInfo.getCreatedAt());
-        vo.setUpdatedAt(fileInfo.getUpdatedAt());
-        vo.setIsFolder(fileInfo.getIsFolder());
-        return vo;
-    }
 
     @Override
     public byte[] downloadFile(String fileId) {
@@ -174,7 +161,7 @@ public class FileServiceImpl implements FileService {
 
     private FileInfo getAndValidateFile(String fileId, User currentUser) {
         logger.info("开始处理下载请求，文件ID：{}", fileId);
-        FileInfo fileInfo = fileInfoMapper.findById(fileId);
+        FileInfo fileInfo = fileInfoDao.findById(fileId);
         logger.info("文件信息：{}", fileInfo);
         if (fileInfo == null) {
             throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
@@ -196,7 +183,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String getFilename(String fileId) {
-        FileInfo fileInfo = fileInfoMapper.findById(fileId);
+        FileInfo fileInfo = fileInfoDao.findById(fileId);
         if (fileInfo == null) {
             throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
         }
@@ -208,9 +195,8 @@ public class FileServiceImpl implements FileService {
     public void renameFile(String fileId, String newFilename) {
         User currentUser = UserContext.getCurrentUser();
         FileInfo fileInfo = getAndValidateFile(fileId, currentUser);
-
         fileInfo.setFilename(newFilename);
         fileInfo.setUpdatedAt(LocalDateTime.now());
-        fileInfoMapper.updateFileInfo(fileInfo);
+        fileInfoDao.updateFileInfo(fileInfo);
     }
 }

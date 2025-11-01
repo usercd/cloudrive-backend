@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.cloudrive.mapper.UserMapper">
+<mapper namespace="com.cloudrive.dao.UserDao">
     <select id="findUserByEmail" resultType="com.cloudrive.model.entity.User">
         SELECT user_id,
                avatar_url,

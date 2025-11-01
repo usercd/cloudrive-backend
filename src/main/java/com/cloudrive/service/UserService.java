@@ -3,6 +3,9 @@ package com.cloudrive.service;
 import com.cloudrive.model.dto.LoginDTO;
 import com.cloudrive.model.dto.RegisterDTO;
 import com.cloudrive.model.entity.User;
+import com.cloudrive.model.vo.UserLoginVO;
+import com.cloudrive.model.vo.UserVO;
+import jakarta.validation.Valid;
 
 /**
  * @author cd
@@ -20,13 +23,8 @@ public interface UserService {
      */
     void register(RegisterDTO registerDTO);
 
-    /**
-     * 用户登录
-     */
-    String login(LoginDTO loginDTO);
-
     User findUserByEmail(String email);
-    User findUserById(String userId);
+    UserVO findUserById(String userId);
 
     /**
      * 用户登出
@@ -37,4 +35,9 @@ public interface UserService {
      * 强制下线指定用户
      */
     void forceLogout(Long userId);
+
+    /**
+     * 用户登录
+     */
+    UserLoginVO loginWithPassword(LoginDTO loginDTO);
 }

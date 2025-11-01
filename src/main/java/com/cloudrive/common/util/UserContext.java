@@ -3,7 +3,7 @@ package com.cloudrive.common.util;
 import cn.dev33.satoken.stp.StpUtil;
 import com.cloudrive.common.enums.ErrorCode;
 import com.cloudrive.common.exception.BusinessException;
-import com.cloudrive.mapper.UserMapper;
+import com.cloudrive.dao.UserDao;
 import com.cloudrive.model.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,11 +17,11 @@ import java.util.Optional;
  */
 @Component
 public class UserContext {
-    private static UserMapper userMapper;
+    private static UserDao userDao;
 
     @Autowired
-    public void setUserMapper(UserMapper userMapper) {
-        UserContext.userMapper = userMapper;
+    public void setUserMapper(UserDao userDao) {
+        UserContext.userDao = userDao;
     }
 
 
@@ -41,7 +41,7 @@ public class UserContext {
      */
     public static User getCurrentUser() {
         String userId = getCurrentUserId();
-        Optional<User> user = Optional.ofNullable(userMapper.findUserById(userId));
+        Optional<User> user = Optional.ofNullable(userDao.findUserById(userId));
         ExceptionUtil.throwIfNull(user.orElse(null), ErrorCode.USER_NOT_FOUND);
         return user.get();
     }
